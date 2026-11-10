@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Loader2,
   Mail,
+  ShieldCheck,
   User,
 } from "lucide-react"
 
@@ -19,7 +20,7 @@ import { SocialAuthButton } from "@/components/auth/social-auth-button"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 
-type UserRole = "seeker" | "recruiter"
+type UserRole = "seeker" | "recruiter" | "admin"
 
 export function SignUpForm() {
   const router = useRouter()
@@ -90,6 +91,7 @@ export function SignUpForm() {
         name: name.trim(),
         email: email.trim(),
         password,
+        role,
       })
 
       if (res?.error) {
@@ -127,7 +129,9 @@ export function SignUpForm() {
         <label className="text-xs font-medium text-zinc-300">
           Account Role
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3"> {/* 2 থেকে 3 করা হয়েছে */}
+
+          {/* Job Seeker */}
           <button
             type="button"
             onClick={() => setRole("seeker")}
@@ -145,6 +149,7 @@ export function SignUpForm() {
             <span className="text-[10px] text-zinc-500">Apply &amp; Track</span>
           </button>
 
+          {/* Recruiter */}
           <button
             type="button"
             onClick={() => setRole("recruiter")}
@@ -161,6 +166,25 @@ export function SignUpForm() {
             <span className="text-xs font-semibold">Recruiter</span>
             <span className="text-[10px] text-zinc-500">Hire Top Talent</span>
           </button>
+
+          {/* Admin (Learning Purpose) */}
+          <button
+            type="button"
+            onClick={() => setRole("admin")}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-center transition-all duration-200",
+              role === "admin"
+                ? "border-brand bg-brand/10 text-white shadow-[0_0_15px_rgba(91,87,245,0.2)]"
+                : "border-white/10 bg-white/[0.02] text-zinc-400 hover:border-white/20 hover:bg-white/[0.05]"
+            )}
+          >
+            <ShieldCheck
+              className={cn("size-4.5", role === "admin" ? "text-brand" : "text-zinc-500")}
+            />
+            <span className="text-xs font-semibold">Admin</span>
+            <span className="text-[10px] text-zinc-500">Manage System</span>
+          </button>
+
         </div>
       </div>
 
