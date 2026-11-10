@@ -98,10 +98,11 @@ export function SignUpForm() {
         return
       }
 
-      setSuccess("Digital identity minted! Redirecting to opportunities...")
+      setSuccess("Digital identity minted! Redirecting you home...")
       setTimeout(() => {
-        router.push(role === "recruiter" ? "/company" : "/jobs")
-      }, 1000)
+        router.replace("/")
+        router.refresh()
+      }, 900)
     } catch (err) {
       setLoading(false)
       const errMessage =

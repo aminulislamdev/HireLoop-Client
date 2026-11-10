@@ -54,10 +54,11 @@ export function SignInForm() {
         return
       }
 
-      setSuccess("Identity verified! Teleporting to your dashboard...")
+      setSuccess("Identity verified! Redirecting you home...")
       setTimeout(() => {
-        router.push("/jobs")
-      }, 1000)
+        router.replace("/")
+        router.refresh()
+      }, 900)
     } catch (err) {
       setLoading(false)
       const errMessage =

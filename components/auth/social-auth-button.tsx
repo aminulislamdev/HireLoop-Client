@@ -19,7 +19,7 @@ export function SocialAuthButton({ mode, onError }: SocialAuthButtonProps) {
       setLoading(true)
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/jobs",
+        callbackURL: "/",
       })
     } catch (err) {
       setLoading(false)
