@@ -43,11 +43,40 @@ hireloop-client/
 │   │   └── sheet.tsx                         # Base UI accessible drawer sheet
 │   ├── site-header.tsx                       # Responsive header with desktop nav, auth state & mobile sheet
 │   └── site-footer.tsx                       # Global multi-column footer with legal links
+├── app/
+│   ├── components/
+│   │   ├── sidebar/                          # Modular sidebar folder
+│   │   │   ├── AppSidebar.tsx                # Orchestrator: session role/user + active route + composition
+│   │   │   ├── navigation-config.ts          # Role-based menu configuration + resolveActiveUrl helper
+│   │   │   ├── types.ts                      # AppRole, SidebarUser, NavItem/Section, RoleBadgeVariant, normalizeAppRole
+│   │   │   ├── header.tsx                    # AppSidebarHeader: role switch (UserProfile ↔ Logo)
+│   │   │   ├── user-profile.tsx              # AppSidebarUserProfile: avatar + name + caption + badge
+│   │   │   ├── logo.tsx                      # AppSidebarLogo: HireLoop brand mark + title
+│   │   │   ├── navigation-menu.tsx           # AppSidebarNavigationMenu: sections → sidebar groups
+│   │   │   ├── menu-item.tsx                 # AppSidebarMenuItem: single icon+title Next Link row
+│   │   │   ├── role-badge.tsx                # AppSidebarRoleBadge: tier / premium / admin pill
+│   │   │   ├── footer.tsx                    # AppSidebarFooter: role switch (CTA + logout / identity)
+│   │   │   └── logout.tsx                    # AppSidebarLogout: working Better Auth logout with spinner
+│   │   └── dashboard/                        # Modular dashboard folder
+│   │       ├── dashboard-shell.tsx           # DashboardShell: SidebarProvider + AppSidebar + topbar + content
+│   │       ├── dashboard-topbar.tsx          # Sticky topbar: mobile sidebar trigger, role label, user chip
+│   │       ├── dashboard-overview.tsx        # DashboardOverview: greeting + stats + quick actions per role
+│   │       ├── dashboard-stat-card.tsx       # DashboardStatCard: single overview metric card
+│   │       ├── dashboard-action-card.tsx     # DashboardActionCard: quick-action link card
+│   │       └── dashboard-config.ts           # Data-driven per-role dashboard content + ROLE_LABELS
+│   ├── dashboard/
+│   │   ├── layout.tsx                        # Server session → role-aware DashboardShell (guest → /sign-in)
+│   │   ├── loading.tsx                       # Dashboard skeleton loading state
+│   │   ├── page.tsx                          # /dashboard index: redirects to the session role's dashboard
+│   │   ├── seeker/page.tsx                   # Seeker dashboard (role-guarded overview)
+│   │   ├── recruiter/page.tsx                # Recruiter dashboard (role-guarded overview)
+│   │   └── admin/page.tsx                    # Admin dashboard (role-guarded overview)
 ├── hooks/
 │   └── use-logout.ts                         # Shared Better Auth sign-out flow with loading state
 └── lib/
     ├── auth.ts                               # Better Auth server configuration
     ├── auth-client.ts                        # Single Better Auth React client (session, sign in/up/out)
+    ├── session.ts                            # Server-side cached session lookup + role guard (requireSessionRole)
     └── utils.ts                              # `cn` helper + avatar initials utility
 ```
 
@@ -95,6 +124,45 @@ hireloop-client/
 - `sign-up-form.tsx`: success → `router.replace("/")` + `router.refresh()` (role selection remains a UI preference).
 - `social-auth-button.tsx`: `callbackURL: "/"`.
 
+### 6. Reusable Dashboard Sidebar (`AppSidebar`)
+- **`app/components/sidebar/`** — a fully dynamic, modular sidebar built entirely on the shadcn `Sidebar` primitives (`Sidebar`, `SidebarHeader/Content/Footer`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuButton` with Base UI `render={<Link href={...} />}` navigation).
+- **Fully session-driven:** role, username and avatar come from the Better Auth `useSession()` store — no props needed. Optional `role?: AppRole` and `user?: SidebarUser` props on the orchestrator allow overrides (previews / tests); `AppRole` uses the lowercase Better Auth role values (`"seeker" | "recruiter" | "admin"`, per `lib/auth.ts` `additionalFields`), and `normalizeAppRole` maps raw session roles, defaulting to `seeker` while loading or unknown.
+- **Component architecture (single responsibility each):**
+  - `AppSidebar.tsx` — orchestrator: resolves session role/user, computes the active URL via `usePathname()` and composes header, menu and footer.
+  - `navigation-config.ts` — separated, data-driven `NAV_SECTIONS: Record<AppRole, NavSection[]>` menu configuration plus the longest-prefix `resolveActiveUrl` helper.
+  - `types.ts` — shared types (`AppRole`, `SidebarUser`, `NavItem`, `NavSection`, `RoleBadgeVariant`) and `normalizeAppRole`.
+  - `header.tsx` — `AppSidebarHeader`: role switch between user profile and brand logo.
+  - `user-profile.tsx` — `AppSidebarUserProfile`: session avatar (Base UI `Avatar` + `getInitials` fallback), display name, optional caption and badge.
+  - `logo.tsx` — `AppSidebarLogo`: HireLoop logo image with title/subtitle (admin header).
+  - `navigation-menu.tsx` — `AppSidebarNavigationMenu`: maps sections to labeled `SidebarGroup`s.
+  - `menu-item.tsx` — `AppSidebarMenuItem`: one icon + title row rendered as a Next `Link` with active styling.
+  - `role-badge.tsx` — `AppSidebarRoleBadge`: reusable `tier` / `premium` / `admin` pill variants (Sparkles, Crown, ShieldCheck icons).
+  - `footer.tsx` — `AppSidebarFooter`: role switch between the seeker actions and the admin identity card.
+  - `logout.tsx` — `AppSidebarLogout`: fully working logout wired to the shared `use-logout.ts` hook (spinner + disabled while signing out).
+- **Role-specific rendering (all derived from the same config):**
+  - `seeker`: profile header (avatar, session name, "Professional Tier" caption); Menu — Dashboard, Jobs, Saved Jobs, Applications, Billing, Settings → `/dashboard/seeker/*`; footer with a full-width "Post Resume" button (→ `/dashboard/seeker/resume`) and `Log out`.
+  - `recruiter`: profile header (avatar, session name, "Recruiter" caption + Premium crown badge); Menu — Dashboard, Manage Jobs, Applications, Settings → `/dashboard/recruiter/*`; no footer per the role spec.
+  - `admin`: logo header ("Admin Console"); Console — Dashboard, Users, Companies, Jobs, Payments, Settings → `/dashboard/admin/*`; footer with the session identity card and "Super Admin" badge.
+- **Active route highlighting:** `usePathname()` + `resolveActiveUrl` mark exactly one item active even for nested routes (e.g. `/dashboard/seeker/jobs` highlights "Jobs", not "Dashboard"), via `SidebarMenuButton`'s built-in `data-active` styling.
+- **Responsive behavior:** mobile renders the sidebar inside the shadcn `Sheet` drawer; desktop supports the standard expand/collapse flow — both come from the existing `components/ui/sidebar.tsx` primitives.
+- **Integration:** `app/dashboard/layout.tsx` renders `DashboardShell`, which mounts `<AppSidebar role={...} user={...} />` with the server-resolved session role and user (the redundant `DashboardSidebar.tsx` wrapper was removed).
+
+### 7. Role-Based Dashboard Layout & Content
+- **Server-driven layout (`app/dashboard/layout.tsx`):** resolves the Better Auth session on the server via `auth.api.getSession({ headers })` and renders `DashboardShell` with the normalized session role and user. Guests are redirected to `/sign-in`; no role is hardcoded anywhere — everything flows from the session.
+- **Shared session helper (`lib/session.ts`):**
+  - `getServerSession` — `cache()`-wrapped server session lookup so the layout and page share one call per request.
+  - `requireSessionRole(expected)` — page guard: redirects guests to `/sign-in` and users whose session role differs from the page's role to their own `/dashboard/{role}` (no cross-role peeking); returns the session user otherwise.
+- **`DashboardShell` (`app/components/dashboard/dashboard-shell.tsx`):** wraps `SidebarProvider` + the role-driven `AppSidebar` + `SidebarInset` with a sticky `DashboardTopbar` and passes page content through as children — one shell, completely different rendering per role.
+- **`DashboardTopbar`:** mobile `SidebarTrigger` (opens the sidebar sheet), vertical separator, role label ("Job Seeker / Recruiter / Administrator Dashboard" from `ROLE_LABELS`) and a compact session identity chip (name + avatar with initials fallback).
+- **Data-driven content (`dashboard-config.ts`):** `DASHBOARD_CONFIG: Record<AppRole, DashboardConfig>` holds each role's subtitle, 4 stat cards and 3 quick actions → reused by the single `DashboardOverview` component:
+  - `seeker` — Applications / Saved Jobs / Profile Views / New Matches + Browse Jobs, Post Resume, Manage Billing.
+  - `recruiter` — Active Jobs / Total Applicants / Pending Reviews / Job Views + Post a Job, Review Applications, Account Settings.
+  - `admin` — Total Users / Companies / Active Jobs / Revenue (30d) + Manage Users, Review Companies, Payments.
+- **Reusable content components:** `DashboardOverview` (greeting with the session user's first name + config-driven grid), `DashboardStatCard` (icon metric card) and `DashboardActionCard` (Next `Link` quick-action card to each role's dashboard routes).
+- **Role routes preserved & guarded:** `/dashboard/seeker|recruiter|admin` keep working and now render role-appropriate content via `requireSessionRole`; a new `/dashboard` index redirects each signed-in user to their own role's dashboard.
+- **Loading state:** `app/dashboard/loading.tsx` mirrors the overview layout with shadcn `Skeleton` cards so navigation into the dashboard doesn't jump.
+- **Fallback behavior:** unknown / missing session roles normalize to `seeker` (matching the Better Auth `role` default), and unauthenticated visits redirect to the existing sign-in portal.
+
 ## Recent Git Commits Log
 
 1. **`209e16b`** `feat(auth): add reusable password input and Google social auth components`
@@ -107,7 +175,33 @@ hireloop-client/
 8. **`f6b99d3`** `feat(auth): add session-aware navbar auth components`
 9. **`0dbdfb1`** `feat(navbar): integrate authenticated state into site header`
 10. **`5546878`** `feat(auth): redirect to home after sign in and sign up`
-11. **`[this commit]`** `docs: update implementation log with navbar changes and commit history`
+11. **`2aed0fe`** `docs: update implementation log with navbar changes and commit history`
+12. **`f9fae47`** `feat(auth): add role selection to signup form and implement secure server-side role assignment`
+13. **`759304b`** `feat(ui): add input, tooltip and skeleton primitives`
+14. **`7e874b6`** `feat(ui): add use-mobile hook for responsive breakpoint detection`
+15. **`58246a4`** `feat(ui): add shadcn sidebar primitives built on Base UI`
+16. **`f223764`** `fix(ui): align bottom sheet slide distance with other sides`
+17. **`37aad3c`** `feat(sidebar): add typed role and navigation foundation`
+18. **`519da70`** `feat(sidebar): add data-driven role navigation configuration`
+19. **`c4f8ba8`** `feat(sidebar): add reusable role badge component`
+20. **`a54246a`** `feat(sidebar): add brand logo header block`
+21. **`028ef38`** `feat(sidebar): add session-driven user profile card`
+22. **`fa39f89`** `feat(sidebar): add role-switching sidebar header`
+23. **`58c291a`** `feat(sidebar): add single navigation menu item component`
+24. **`ae31166`** `feat(sidebar): add navigation menu group renderer`
+25. **`3ca0ca8`** `feat(sidebar): add working sidebar logout action`
+26. **`6048059`** `feat(sidebar): add role-switching sidebar footer`
+27. **`7109b0f`** `feat(sidebar): add AppSidebar orchestrator composing the modular sidebar`
+28. **`9526edb`** `feat(dashboard): add cached server session helper with role guard`
+29. **`95eb44b`** `feat(dashboard): add data-driven per-role dashboard content config`
+30. **`0bea89b`** `feat(dashboard): add reusable stat and quick-action cards`
+31. **`387a7bd`** `feat(dashboard): add role-specific dashboard overview component`
+32. **`ca83b16`** `feat(dashboard): add sticky topbar with mobile trigger and session identity`
+33. **`56b26d9`** `feat(dashboard): add role-aware dashboard shell`
+34. **`1381eab`** `feat(dashboard): wire server-resolved session role into dashboard layout`
+35. **`70ced0a`** `feat(dashboard): add role-guarded dashboard index and per-role pages`
+36. **`3a33ec9`** `feat(dashboard): add dashboard loading skeleton state`
+37. **`[this commit]`** `docs: update implementation log with sidebar, dashboard and commit history`
 
 ## Verification
 - **TypeScript (`tsc --noEmit`):** Passed with 0 errors.
@@ -122,4 +216,5 @@ hireloop-client/
   - Mobile header shows the avatar; the sheet shows the identity card and logout, hiding guest links.
   - Mobile logout clears the session.
 - **Routes rendered:** `/`, `/sign-in`, `/sign-up`, `/jobs`, `/company`, `/pricing` all return HTTP 200 with no runtime error markers.
+- **Dashboard flow (curl + production build):** `next build` passes with `/dashboard`, `/dashboard/seeker`, `/dashboard/recruiter`, `/dashboard/admin` as dynamic session-rendered routes; unauthenticated requests to any dashboard URL return 307 → `/sign-in`; after sign-up, `/dashboard/seeker` renders the role shell (sidebar, "Job Seeker Dashboard" topbar, "Welcome back, …" greeting, stat cards and quick actions) with the loading skeleton boundary in place.
 
