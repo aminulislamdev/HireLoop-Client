@@ -1,6 +1,7 @@
 "use client"
 
-import { ChevronDown, Loader2, LogOut } from "lucide-react"
+import Link from "next/link"
+import { ChevronDown, LayoutDashboard, Loader2, LogOut } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -11,12 +12,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useLogout } from "@/hooks/use-logout"
+import { roleDashboardPath } from "@/lib/role-routes"
 import { cn, getInitials } from "@/lib/utils"
 
 export interface NavUser {
   name?: string | null
   email?: string | null
   image?: string | null
+  role?: string | null
 }
 
 interface UserMenuProps {
@@ -91,6 +94,14 @@ export function UserMenu({ user, className }: UserMenuProps) {
         </div>
 
         <DropdownMenuSeparator className="my-1 bg-white/10" />
+
+        <DropdownMenuItem
+          render={<Link href={roleDashboardPath(user.role)} />}
+          className="cursor-pointer gap-2 rounded-lg px-2 py-2 text-[13px] font-medium text-nav-foreground focus:bg-white/5 focus:text-white"
+        >
+          <LayoutDashboard aria-hidden className="size-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
 
         <DropdownMenuItem
           variant="destructive"
