@@ -8,6 +8,7 @@ Deliver a session-aware navbar: successful Sign In/Sign Up returns to Home, gues
 ## Component Architecture & Structure
 ```text
 hireloop-client/
+├── proxy.ts                                   # Edge guard: blocks guests from /dashboard/* (Better Auth session cookie)
 ├── app/
 │   ├── (auth)/
 │   │   ├── sign-in/page.tsx                  # Sign In route view with metadata
@@ -21,6 +22,7 @@ hireloop-client/
 ├── components/
 │   ├── auth/
 │   │   ├── auth-portal-layout.tsx            # Futuristic digital gateway split layout (cybernetic orbit & telemetry)
+│   │   ├── nav-links.tsx                     # NavLinks: session-driven navbar links (public ↔ per-role with Dashboard)
 │   │   ├── sign-in-form.tsx                  # Sign In credentials form, remember me & recovery modal
 │   │   ├── sign-up-form.tsx                  # Sign Up form with role selection & live password strength meter
 │   │   ├── social-auth-button.tsx            # Google SSO authentication button with Better Auth integration
@@ -76,6 +78,7 @@ hireloop-client/
 └── lib/
     ├── auth.ts                               # Better Auth server configuration
     ├── auth-client.ts                        # Single Better Auth React client (session, sign in/up/out)
+    ├── role-routes.ts                        # Centralized role-based route config: ROLE_DASHBOARD, nav links, resolvers
     ├── session.ts                            # Server-side cached session lookup + role guard (requireSessionRole)
     └── utils.ts                              # `cn` helper + avatar initials utility
 ```
@@ -163,6 +166,19 @@ hireloop-client/
 - **Loading state:** `app/dashboard/loading.tsx` mirrors the overview layout with shadcn `Skeleton` cards so navigation into the dashboard doesn't jump.
 - **Fallback behavior:** unknown / missing session roles normalize to `seeker` (matching the Better Auth `role` default), and unauthenticated visits redirect to the existing sign-in portal.
 
+### 8. Role-Based Navbar & Server-Side Route Protection
+- **Centralized route config (`lib/role-routes.ts`):** single source of truth for role-aware navigation —
+  - `ROLE_DASHBOARD: Record<AppRole, string>` maps each role to its dashboard entry (`/dashboard/seeker|recruiter|admin`); used by the navbar links, the user menu and the `/dashboard` index redirect.
+  - `PUBLIC_NAV_LINKS` (guest links: Browse Jobs, Company, Pricing) and `ROLE_NAV_LINKS` (per-role lists, each starting with a "Dashboard" entry) drive every navbar surface.
+  - `navLinksForRole`, `roleDashboardPath` and `isActivePath` resolvers keep raw session roles → typed routes in one place.
+- **Reusable `NavLinks` (`components/auth/nav-links.tsx`):** one client component for the desktop inline links and the mobile sheet links (both previously hardcoded `navItems` in `site-header.tsx`).
+  - Reads the Better Auth reactive `useSession` store, so links swap instantly after login/logout — no page refresh (same pattern as `NavAuth`).
+  - Guests get `PUBLIC_NAV_LINKS`; signed-in users always get their role's links (unknown/missing roles default to `seeker`, matching the Better Auth role default), with "Dashboard" pointing at their own dashboard.
+  - Preserves the original styling exactly (desktop `text-sm` link styles + `aria-current`, mobile sheet rows with active `bg-white/5` highlighting); desktop highlighting now also marks the active "Dashboard" route.
+- **User menu Dashboard shortcut:** `user-menu.tsx` gains a `LayoutDashboard` "Dashboard" item rendered as a `Link` to `roleDashboardPath(user.role)`; `NavUser` now carries the optional session `role`.
+- **Server-side route protection (`proxy.ts`):** Next.js 16 edge proxy guarding `matcher: ["/dashboard/:path*"]` with Better Auth's edge-safe `getSessionCookie` check — guests are redirected to `/sign-in` before any dashboard layout or page runs. Role permissions are enforced server-side inside the dashboard layout/pages via `requireSessionRole` (the signed session cookie alone doesn't reveal the role), so cross-role access is impossible even for authenticated users.
+- **Preserved behavior:** sign-in/up still redirect to `/`, the navbar identity chip/logout flow is unchanged, and all existing routes render exactly as before — only the link set and dashboard destination become role-aware.
+
 ## Recent Git Commits Log
 
 1. **`209e16b`** `feat(auth): add reusable password input and Google social auth components`
@@ -201,7 +217,13 @@ hireloop-client/
 34. **`1381eab`** `feat(dashboard): wire server-resolved session role into dashboard layout`
 35. **`70ced0a`** `feat(dashboard): add role-guarded dashboard index and per-role pages`
 36. **`3a33ec9`** `feat(dashboard): add dashboard loading skeleton state`
-37. **`[this commit]`** `docs: update implementation log with sidebar, dashboard and commit history`
+37. **`e5b3465`** `docs: update implementation log with sidebar, dashboard and commit history`
+38. **`6f54bc8`** `feat(nav): add centralized role-based route configuration`
+39. **`7b861ab`** `feat(nav): add reusable session-driven navbar links component`
+40. **`f8e32b0`** `feat(nav): render role-aware navbar links in the site header`
+41. **`6991771`** `feat(nav): add role-aware dashboard shortcut to the user menu`
+42. **`1fdba82`** `feat(auth): protect dashboard routes with edge proxy session guard`
+43. **`[this commit]`** `docs: update implementation log with role-based navbar and route protection`
 
 ## Verification
 - **TypeScript (`tsc --noEmit`):** Passed with 0 errors.
