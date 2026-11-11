@@ -2,11 +2,11 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
 
 import { NavAuth } from "@/components/auth/nav-auth"
+import { NavLinks } from "@/components/auth/nav-links"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -18,20 +18,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-
-const navItems = [
-  { label: "Browse Jobs", href: "/jobs" },
-  { label: "Company", href: "/company" },
-  { label: "Pricing", href: "/pricing" },
-] as const
-
-function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
-}
 
 export function SiteHeader() {
-  const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   return (
@@ -56,23 +44,7 @@ export function SiteHeader() {
           aria-label="Main navigation"
           className="hidden items-center gap-7 md:flex lg:gap-8"
         >
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={
-                isActivePath(pathname, item.href) ? "page" : undefined
-              }
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-white",
-                isActivePath(pathname, item.href)
-                  ? "text-white"
-                  : "text-nav-foreground/90"
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <NavLinks variant="desktop" />
 
           <Separator
             orientation="vertical"
@@ -136,24 +108,7 @@ export function SiteHeader() {
                 aria-label="Mobile navigation"
                 className="flex flex-col gap-1 overflow-y-auto p-4"
               >
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={
-                      isActivePath(pathname, item.href) ? "page" : undefined
-                    }
-                    className={cn(
-                      "rounded-lg px-3 py-3 text-base font-medium transition-colors hover:bg-white/5 hover:text-white",
-                      isActivePath(pathname, item.href)
-                        ? "bg-white/5 text-white"
-                        : "text-nav-foreground/90"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                <NavLinks variant="mobile" onNavigate={() => setOpen(false)} />
               </nav>
 
               <div className="flex flex-col gap-2 border-t border-white/10 p-4">
