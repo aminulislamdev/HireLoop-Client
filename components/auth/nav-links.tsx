@@ -32,7 +32,7 @@ export function NavLinks({ variant, onNavigate }: NavLinksProps) {
   // Signed-in users always get role links (unknown roles default to seeker,
   // matching the Better Auth role default); guests get the public links.
   const links = session?.user
-    ? navLinksForRole(session.user.role ?? "seeker")
+    ? navLinksForRole(session.user.role)
     : PUBLIC_NAV_LINKS
 
   if (variant === "mobile") {

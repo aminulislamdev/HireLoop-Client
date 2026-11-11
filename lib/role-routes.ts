@@ -54,7 +54,8 @@ export const ROLE_NAV_LINKS: Record<AppRole, readonly NavLink[]> = {
 
 /**
  * Resolves the navbar links for a (possibly missing / raw) session role.
- * Unknown or absent roles fall back to the guest links.
+ * Unknown or absent roles fall back to the seeker links, matching the
+ * Better Auth role default.
  */
 export function navLinksForRole(role?: string | null): readonly NavLink[] {
   const value = role?.trim().toLowerCase()
@@ -63,7 +64,7 @@ export function navLinksForRole(role?: string | null): readonly NavLink[] {
     return ROLE_NAV_LINKS[value]
   }
 
-  return PUBLIC_NAV_LINKS
+  return ROLE_NAV_LINKS.seeker
 }
 
 /**
