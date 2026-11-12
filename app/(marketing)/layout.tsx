@@ -1,4 +1,4 @@
-import { SiteFooter } from "@/components/site-footer"
+import { SiteFooter } from "@/components/layout/site-footer"
 
 /**
  * Marketing layout — wraps all public/marketing pages with the site footer.

@@ -2,7 +2,7 @@
 
 import { Loader2, LogOut } from "lucide-react"
 
-import type { NavUser } from "@/components/auth/user-menu"
+import type { NavUser } from "@/components/layout/user-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useLogout } from "@/hooks/use-logout"

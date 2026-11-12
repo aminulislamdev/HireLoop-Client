@@ -5,8 +5,8 @@ import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
 
-import { NavAuth } from "@/components/auth/nav-auth"
-import { NavLinks } from "@/components/auth/nav-links"
+import { NavAuth } from "@/components/layout/nav-auth"
+import { NavLinks } from "@/components/layout/nav-links"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {

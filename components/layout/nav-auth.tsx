@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 
-import { UserMenu } from "@/components/auth/user-menu"
-import { UserSummary } from "@/components/auth/user-summary"
+import { UserMenu } from "@/components/layout/user-menu"
+import { UserSummary } from "@/components/layout/user-summary"
 import { Button } from "@/components/ui/button"
 import { useSession } from "@/lib/auth-client"
 

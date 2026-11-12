@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { PlaceholderPage } from "@/components/marketing/placeholder-page"
 
 export const metadata: Metadata = {
   title: "Company",
