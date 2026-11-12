@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { DashboardShell } from "@/app/components/dashboard/dashboard-shell"
+import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { normalizeAppRole } from "@/components/sidebar/types"
 import { getServerSession } from "@/lib/session"
 

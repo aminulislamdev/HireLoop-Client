@@ -1,5 +1,5 @@
 
-import PostJobForm from "@/app/components/dashboard/post-job-form";
+import PostJobForm from "@/components/dashboard/post-job-form";
 
 export default function NewJobPage() {
   return (

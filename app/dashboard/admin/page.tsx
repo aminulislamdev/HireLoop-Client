@@ -1,4 +1,4 @@
-import { DashboardOverview } from "@/app/components/dashboard/dashboard-overview"
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview"
 import { requireSessionRole } from "@/lib/session"
 
 /**
