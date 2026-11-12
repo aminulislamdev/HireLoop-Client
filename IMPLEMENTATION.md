@@ -130,14 +130,14 @@ hireloop-client/
 - `lib/auth-client.ts` now exposes a single client (plus `signIn`, `signUp`, `signOut`, `useSession`) with the base URL read from `NEXT_PUBLIC_APP_URL`, falling back to `http://localhost:3000`.
 
 ### 4. Session-Aware Navbar
-- **One source of truth:** `components/auth/nav-auth.tsx` consumes Better Auth's reactive `useSession` store and renders one of three states.
+- **One source of truth:** `components/layout/nav-auth.tsx` consumes Better Auth's reactive `useSession` store and renders one of three states.
   - `desktop`: guest `Sign In` / `Get Started` actions, or the avatar dropdown.
   - `mobile`: guest actions inside the sheet, or the identity card.
   - `compact`: avatar-only trigger for the mobile top bar (renders nothing for guests).
 - **Guest state:** Login and Get Started are hidden as soon as a session exists.
 - **Authenticated state:** conservative initials avatar (`Avatar` + `getInitials`) or the provider profile image, with a brand ring on hover/open.
-- **Profile dropdown (`components/auth/user-menu.tsx`):** shadcn `DropdownMenu` positioned to the end, showing the user's name, email and a destructive `Log out` action. Uses the existing dark navbar palette (`#141419`, white/10 borders, rose destructive tone).
-- **Mobile:** avatar sits next to the hamburger; the navigation sheet shows `components/auth/user-summary.tsx` (avatar, name, email, full-width logout) so the menu never fights the modal drawer for focus.
+- **Profile dropdown (`components/layout/user-menu.tsx`):** shadcn `DropdownMenu` positioned to the end, showing the user's name, email and a destructive `Log out` action. Uses the existing dark navbar palette (`#141419`, white/10 borders, rose destructive tone).
+- **Mobile:** avatar sits next to the hamburger; the navigation sheet shows `components/layout/user-summary.tsx` (avatar, name, email, full-width logout) so the menu never fights the modal drawer for focus.
 - **Reusable logout flow (`hooks/use-logout.ts`):** calls `authClient.signOut()`, then `router.replace("/")` + `router.refresh()`; loading state disables the action and swaps in a spinner.
 - **Instant updates:** the navbar reacts to the Better Auth session store, so signing in swaps guest actions for the avatar and signing out restores them without a page reload.
 - **Redirects:** Sign In, Sign Up and Google SSO now return to `/` (Home) instead of `/jobs` or `/company`.
@@ -148,7 +148,7 @@ hireloop-client/
 - `social-auth-button.tsx`: `callbackURL: "/"`.
 
 ### 6. Reusable Dashboard Sidebar (`AppSidebar`)
-- **`app/components/sidebar/`** — a fully dynamic, modular sidebar built entirely on the shadcn `Sidebar` primitives (`Sidebar`, `SidebarHeader/Content/Footer`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuButton` with Base UI `render={<Link href={...} />}` navigation).
+- **`components/sidebar/`** — a fully dynamic, modular sidebar built entirely on the shadcn `Sidebar` primitives (`Sidebar`, `SidebarHeader/Content/Footer`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuButton` with Base UI `render={<Link href={...} />}` navigation).
 - **Fully session-driven:** role, username and avatar come from the Better Auth `useSession()` store — no props needed. Optional `role?: AppRole` and `user?: SidebarUser` props on the orchestrator allow overrides (previews / tests); `AppRole` uses the lowercase Better Auth role values (`"seeker" | "recruiter" | "admin"`, per `lib/auth.ts` `additionalFields`), and `normalizeAppRole` maps raw session roles, defaulting to `seeker` while loading or unknown.
 - **Component architecture (single responsibility each):**
   - `AppSidebar.tsx` — orchestrator: resolves session role/user, computes the active URL via `usePathname()` and composes header, menu and footer.
@@ -175,7 +175,7 @@ hireloop-client/
 - **Shared session helper (`lib/session.ts`):**
   - `getServerSession` — `cache()`-wrapped server session lookup so the layout and page share one call per request.
   - `requireSessionRole(expected)` — page guard: redirects guests to `/sign-in` and users whose session role differs from the page's role to their own `/dashboard/{role}` (no cross-role peeking); returns the session user otherwise.
-- **`DashboardShell` (`app/components/dashboard/dashboard-shell.tsx`):** wraps `SidebarProvider` + the role-driven `AppSidebar` + `SidebarInset` with a sticky `DashboardTopbar` and passes page content through as children — one shell, completely different rendering per role.
+- **`DashboardShell` (`components/dashboard/dashboard-shell.tsx`):** wraps `SidebarProvider` + the role-driven `AppSidebar` + `SidebarInset` with a sticky `DashboardTopbar` and passes page content through as children — one shell, completely different rendering per role.
 - **`DashboardTopbar`:** mobile `SidebarTrigger` (opens the sidebar sheet), vertical separator, role label ("Job Seeker / Recruiter / Administrator Dashboard" from `ROLE_LABELS`) and a compact session identity chip (name + avatar with initials fallback).
 - **Data-driven content (`dashboard-config.ts`):** `DASHBOARD_CONFIG: Record<AppRole, DashboardConfig>` holds each role's subtitle, 4 stat cards and 3 quick actions → reused by the single `DashboardOverview` component:
   - `seeker` — Applications / Saved Jobs / Profile Views / New Matches + Browse Jobs, Post Resume, Manage Billing.
@@ -191,7 +191,7 @@ hireloop-client/
   - `ROLE_DASHBOARD: Record<AppRole, string>` maps each role to its dashboard entry (`/dashboard/seeker|recruiter|admin`); used by the navbar links, the user menu and the `/dashboard` index redirect.
   - `PUBLIC_NAV_LINKS` (guest links: Browse Jobs, Company, Pricing) and `ROLE_NAV_LINKS` (per-role lists, each starting with a "Dashboard" entry) drive every navbar surface.
   - `navLinksForRole`, `roleDashboardPath` and `isActivePath` resolvers keep raw session roles → typed routes in one place.
-- **Reusable `NavLinks` (`components/auth/nav-links.tsx`):** one client component for the desktop inline links and the mobile sheet links (both previously hardcoded `navItems` in `site-header.tsx`).
+- **Reusable `NavLinks` (`components/layout/nav-links.tsx`):** one client component for the desktop inline links and the mobile sheet links (both previously hardcoded `navItems` in `components/layout/site-header.tsx`).
   - Reads the Better Auth reactive `useSession` store, so links swap instantly after login/logout — no page refresh (same pattern as `NavAuth`).
   - Guests get `PUBLIC_NAV_LINKS`; signed-in users always get their role's links (unknown/missing roles default to `seeker`, matching the Better Auth role default), with "Dashboard" pointing at their own dashboard.
   - Preserves the original styling exactly (desktop `text-sm` link styles + `aria-current`, mobile sheet rows with active `bg-white/5` highlighting); desktop highlighting now also marks the active "Dashboard" route.
@@ -201,51 +201,17 @@ hireloop-client/
 
 ## Recent Git Commits Log
 
-1. **`209e16b`** `feat(auth): add reusable password input and Google social auth components`
-2. **`212c5d4`** `feat(auth): create futuristic digital identity portal layout`
-3. **`3320b99`** `feat(auth): implement interactive sign-in and sign-up form components`
-4. **`05fcae1`** `feat(routes): migrate auth pages to (auth) route group with digital portal integration`
-5. **`4a8eaac`** `feat(ui): add avatar and dropdown menu primitives`
-6. **`52bb0a3`** `refactor(auth): consolidate better auth client exports`
-7. **`0c31fdf`** `feat(auth): add reusable logout hook with loading state`
-8. **`f6b99d3`** `feat(auth): add session-aware navbar auth components`
-9. **`0dbdfb1`** `feat(navbar): integrate authenticated state into site header`
-10. **`5546878`** `feat(auth): redirect to home after sign in and sign up`
-11. **`2aed0fe`** `docs: update implementation log with navbar changes and commit history`
-12. **`f9fae47`** `feat(auth): add role selection to signup form and implement secure server-side role assignment`
-13. **`759304b`** `feat(ui): add input, tooltip and skeleton primitives`
-14. **`7e874b6`** `feat(ui): add use-mobile hook for responsive breakpoint detection`
-15. **`58246a4`** `feat(ui): add shadcn sidebar primitives built on Base UI`
-16. **`f223764`** `fix(ui): align bottom sheet slide distance with other sides`
-17. **`37aad3c`** `feat(sidebar): add typed role and navigation foundation`
-18. **`519da70`** `feat(sidebar): add data-driven role navigation configuration`
-19. **`c4f8ba8`** `feat(sidebar): add reusable role badge component`
-20. **`a54246a`** `feat(sidebar): add brand logo header block`
-21. **`028ef38`** `feat(sidebar): add session-driven user profile card`
-22. **`fa39f89`** `feat(sidebar): add role-switching sidebar header`
-23. **`58c291a`** `feat(sidebar): add single navigation menu item component`
-24. **`ae31166`** `feat(sidebar): add navigation menu group renderer`
-25. **`3ca0ca8`** `feat(sidebar): add working sidebar logout action`
-26. **`6048059`** `feat(sidebar): add role-switching sidebar footer`
-27. **`7109b0f`** `feat(sidebar): add AppSidebar orchestrator composing the modular sidebar`
-28. **`9526edb`** `feat(dashboard): add cached server session helper with role guard`
-29. **`95eb44b`** `feat(dashboard): add data-driven per-role dashboard content config`
-30. **`0bea89b`** `feat(dashboard): add reusable stat and quick-action cards`
-31. **`387a7bd`** `feat(dashboard): add role-specific dashboard overview component`
-32. **`ca83b16`** `feat(dashboard): add sticky topbar with mobile trigger and session identity`
-33. **`56b26d9`** `feat(dashboard): add role-aware dashboard shell`
-34. **`1381eab`** `feat(dashboard): wire server-resolved session role into dashboard layout`
-35. **`70ced0a`** `feat(dashboard): add role-guarded dashboard index and per-role pages`
-36. **`3a33ec9`** `feat(dashboard): add dashboard loading skeleton state`
-37. **`e5b3465`** `docs: update implementation log with sidebar, dashboard and commit history`
-38. **`6f54bc8`** `feat(nav): add centralized role-based route configuration`
-39. **`7b861ab`** `feat(nav): add reusable session-driven navbar links component`
-40. **`f8e32b0`** `feat(nav): render role-aware navbar links in the site header`
-41. **`6991771`** `feat(nav): add role-aware dashboard shortcut to the user menu`
-42. **`1fdba82`** `feat(auth): protect dashboard routes with edge proxy session guard`
-43. **`6d6a676`** `docs: update implementation log with role-based navbar and route protection`
-44. **`fbc0f0c`** `fix(nav): default unknown session roles to seeker navbar links (consistency with Better Auth role default)`
-45. **`[this commit]`** `docs: finalize implementation log for role-based navbar and dashboard protection`
+Full history is available via `git log`. Notable recent entries:
+
+1. **`b370b32`** `feat(recruiter): add job listing and post-job form pages with textarea component`
+2. **`29eb7c0`** `fix(dashboard): offset sidebar below sticky navbar using --dashboard-top CSS variable`
+3. **`852c161`** `fix(header): make SiteHeader sticky and add --navbar-height CSS variable for dashboard offset`
+4. **`7bf9234`** `feat(auth): add pass-through layout for (auth) route group, suppressing site footer`
+5. **`e1108f4`** `feat(layout): add (marketing) route group with SiteFooter layout for public pages`
+6. **`b95f4a8`** `refactor(layout): remove SiteFooter from root layout to enable per-route-group control`
+7. **`40c80c4`** `refactor(structure): group navbar and site chrome components under components/layout`
+8. **`60c5f45`** `refactor(structure): move dashboard components from app/components to components/dashboard`
+9. **`36df29e`** `refactor(structure): move sidebar components from app/components to components/sidebar`
 
 ---
 
@@ -288,9 +254,15 @@ app/
 | `app/(marketing)/company/page.tsx` | Moved from `app/company/page.tsx` |
 | `app/(marketing)/pricing/page.tsx` | Moved from `app/pricing/page.tsx` |
 | `app/(auth)/layout.tsx` | **New** — minimal pass-through, suppresses footer |
-| `components/site-header.tsx` | Changed `relative z-40` → `sticky top-0 z-50` |
+| `components/layout/site-header.tsx` | Changed `relative z-40` → `sticky top-0 z-50` |
 | `app/globals.css` | Added `--navbar-height: 4rem` (4.5rem at `lg:`) + dashboard sidebar CSS offset rule |
-| `app/components/dashboard/dashboard-shell.tsx` | Added `--dashboard-top` CSS var on `SidebarProvider`; constrained shell height to `100svh - navbar`; sidebar container offset via CSS selector |
+| `components/dashboard/dashboard-shell.tsx` | Added `--dashboard-top` CSS var on `SidebarProvider`; constrained shell height to `100svh - navbar`; sidebar container offset via CSS selector |
+
+### Structure Reorganization (latest)
+- Dissolved `app/components/` into `components/` (`sidebar/`, `dashboard/`) so `app/` holds routes only.
+- Grouped global chrome & navbar components into `components/layout/`; `components/auth/` now contains only credential form components.
+- Moved the shared placeholder page to `components/marketing/`, removed the stale unused `components/hero-section.tsx` and leftover `.gitkeep` files.
+- See `## Component Architecture & Structure` for the final tree.
 
 ### CSS Sidebar Offset Mechanism
 The shadcn `Sidebar` component uses `fixed inset-y-0` for its panel container. To push it below the sticky navbar without editing the generated component:
@@ -318,5 +290,5 @@ The shadcn `Sidebar` component uses `fixed inset-y-0` for its panel container. T
 - **Routes:** `/`, `/jobs`, `/company`, `/pricing` → navbar + content + footer.
 - **Auth:** `/sign-in`, `/sign-up` → navbar + full-screen auth portal, no footer.
 - **Dashboard:** `/dashboard/*` → sticky navbar + role sidebar offset below navbar + content, no footer.
-- **Git:** 5 clean conventional commits, no history rewritten, not pushed.
+- **Git:** 5 clean conventional commits, no history rewritten, pushed to `main`.
 
