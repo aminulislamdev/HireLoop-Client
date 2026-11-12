@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 
 import { auth } from "@/lib/auth"
-import { normalizeAppRole, type AppRole } from "@/app/components/sidebar/types"
+import { normalizeAppRole, type AppRole } from "@/components/sidebar/types"
 
 type ServerSession = Awaited<ReturnType<typeof auth.api.getSession>>
 

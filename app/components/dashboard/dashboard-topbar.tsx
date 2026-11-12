@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-import type { AppRole, SidebarUser } from "@/app/components/sidebar/types"
+import type { AppRole, SidebarUser } from "@/components/sidebar/types"
 import { getInitials } from "@/lib/utils"
 
 import { ROLE_LABELS } from "./dashboard-config"

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { normalizeAppRole } from "@/app/components/sidebar/types"
+import { normalizeAppRole } from "@/components/sidebar/types"
 import { getServerSession } from "@/lib/session"
 
 /**

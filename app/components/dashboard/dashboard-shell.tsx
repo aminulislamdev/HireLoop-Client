@@ -1,7 +1,7 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
-import { AppSidebar } from "@/app/components/sidebar/AppSidebar"
-import type { AppRole, SidebarUser } from "@/app/components/sidebar/types"
+import { AppSidebar } from "@/components/sidebar/AppSidebar"
+import type { AppRole, SidebarUser } from "@/components/sidebar/types"
 
 import { DashboardTopbar } from "./dashboard-topbar"
 

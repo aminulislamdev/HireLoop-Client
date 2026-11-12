@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-import type { AppRole } from "@/app/components/sidebar/types"
+import type { AppRole } from "@/components/sidebar/types"
 
 /**
  * Human-readable role labels for the dashboard topbar.

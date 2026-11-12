@@ -1,4 +1,4 @@
-import type { AppRole, SidebarUser } from "@/app/components/sidebar/types"
+import type { AppRole, SidebarUser } from "@/components/sidebar/types"
 
 import { DashboardActionCard } from "./dashboard-action-card"
 import { DASHBOARD_CONFIG } from "./dashboard-config"

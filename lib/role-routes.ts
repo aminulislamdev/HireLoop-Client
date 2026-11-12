@@ -1,4 +1,4 @@
-import type { AppRole } from "@/app/components/sidebar/types"
+import type { AppRole } from "@/components/sidebar/types"
 
 export type { AppRole }
 
