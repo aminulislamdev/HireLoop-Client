@@ -2,7 +2,6 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
@@ -31,9 +30,13 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
+          {/* SiteHeader is global — appears on every page */}
           <SiteHeader />
           {children}
-          <SiteFooter />
+          {/* SiteFooter is intentionally NOT here.
+              It lives in app/(marketing)/layout.tsx so only
+              public/marketing pages render it. Dashboard and
+              auth pages remain footer-free. */}
         </ThemeProvider>
       </body>
     </html>
