@@ -11,77 +11,97 @@ hireloop-client/
 ├── proxy.ts                                   # Edge guard: blocks guests from /dashboard/* (Better Auth session cookie)
 ├── app/
 │   ├── (auth)/
-│   │   ├── sign-in/page.tsx                  # Sign In route view with metadata
-│   │   └── sign-up/page.tsx                  # Sign Up route view with metadata
-│   ├── company/page.tsx                      # Company directory route (placeholder)
-│   ├── jobs/page.tsx                         # Job browsing route (placeholder)
-│   ├── pricing/page.tsx                      # Pricing route (placeholder)
-│   ├── globals.css                           # Theme variables & design tokens
-│   ├── layout.tsx                            # Root layout with SiteHeader & SiteFooter
-│   └── page.tsx                              # Main landing page orchestrator
-├── components/
-│   ├── auth/
-│   │   ├── auth-portal-layout.tsx            # Futuristic digital gateway split layout (cybernetic orbit & telemetry)
-│   │   ├── nav-links.tsx                     # NavLinks: session-driven navbar links (public ↔ per-role with Dashboard)
-│   │   ├── sign-in-form.tsx                  # Sign In credentials form, remember me & recovery modal
-│   │   ├── sign-up-form.tsx                  # Sign Up form with role selection & live password strength meter
-│   │   ├── social-auth-button.tsx            # Google SSO authentication button with Better Auth integration
-│   │   ├── password-input.tsx                # Accessible password input with animated show/hide toggle
-│   │   ├── nav-auth.tsx                      # Session-aware navbar switch (guest links ↔ avatar menu)
-│   │   ├── user-menu.tsx                     # Profile avatar trigger + shadcn dropdown (name, email, logout)
-│   │   └── user-summary.tsx                  # Mobile identity card with direct logout action
-│   ├── home/
-│   │   ├── globe-stats-section.tsx           # 3D Earth, Stars, Glow & 4 Stat Cards
-│   │   ├── hero-section.tsx                  # Hero search banner with dual inputs & popular tags
-│   │   ├── featured-jobs-section.tsx         # "The roles you'd never find by searching" (3x2 grid)
-│   │   ├── features-section.tsx              # "Everything you need to succeed" (4x2 grid)
-│   │   ├── pricing-section.tsx               # "Pay for the leverage, not the listings" (3 tiers + toggle)
-│   │   └── cta-banner-section.tsx            # "Your next role is already looking for you" with glowing dome
-│   ├── ui/
-│   │   ├── avatar.tsx                        # Base UI avatar primitives (image + initials fallback)
-│   │   ├── button.tsx                        # Base UI button component
-│   │   ├── dropdown-menu.tsx                 # Base UI menu primitives styled as shadcn dropdown
-│   │   ├── separator.tsx                     # Base UI separator primitive
-│   │   └── sheet.tsx                         # Base UI accessible drawer sheet
-│   ├── site-header.tsx                       # Responsive header with desktop nav, auth state & mobile sheet
-│   └── site-footer.tsx                       # Global multi-column footer with legal links
-├── app/
-│   ├── components/
-│   │   ├── sidebar/                          # Modular sidebar folder
-│   │   │   ├── AppSidebar.tsx                # Orchestrator: session role/user + active route + composition
-│   │   │   ├── navigation-config.ts          # Role-based menu configuration + resolveActiveUrl helper
-│   │   │   ├── types.ts                      # AppRole, SidebarUser, NavItem/Section, RoleBadgeVariant, normalizeAppRole
-│   │   │   ├── header.tsx                    # AppSidebarHeader: role switch (UserProfile ↔ Logo)
-│   │   │   ├── user-profile.tsx              # AppSidebarUserProfile: avatar + name + caption + badge
-│   │   │   ├── logo.tsx                      # AppSidebarLogo: HireLoop brand mark + title
-│   │   │   ├── navigation-menu.tsx           # AppSidebarNavigationMenu: sections → sidebar groups
-│   │   │   ├── menu-item.tsx                 # AppSidebarMenuItem: single icon+title Next Link row
-│   │   │   ├── role-badge.tsx                # AppSidebarRoleBadge: tier / premium / admin pill
-│   │   │   ├── footer.tsx                    # AppSidebarFooter: role switch (CTA + logout / identity)
-│   │   │   └── logout.tsx                    # AppSidebarLogout: working Better Auth logout with spinner
-│   │   └── dashboard/                        # Modular dashboard folder
-│   │       ├── dashboard-shell.tsx           # DashboardShell: SidebarProvider + AppSidebar + topbar + content
-│   │       ├── dashboard-topbar.tsx          # Sticky topbar: mobile sidebar trigger, role label, user chip
-│   │       ├── dashboard-overview.tsx        # DashboardOverview: greeting + stats + quick actions per role
-│   │       ├── dashboard-stat-card.tsx       # DashboardStatCard: single overview metric card
-│   │       ├── dashboard-action-card.tsx     # DashboardActionCard: quick-action link card
-│   │       └── dashboard-config.ts           # Data-driven per-role dashboard content + ROLE_LABELS
+│   │   ├── layout.tsx                         # Pass-through layout (no footer — auth UI fills viewport)
+│   │   ├── sign-in/page.tsx                   # Sign In route view with metadata
+│   │   └── sign-up/page.tsx                   # Sign Up route view with metadata
+│   ├── (marketing)/
+│   │   ├── layout.tsx                         # Adds SiteFooter to public pages only
+│   │   ├── page.tsx                           # / — main landing page orchestrator
+│   │   ├── jobs/page.tsx                      # /jobs route (placeholder)
+│   │   ├── company/page.tsx                   # /company route (placeholder)
+│   │   └── pricing/page.tsx                   # /pricing route (placeholder)
+│   ├── api/auth/[...all]/route.ts             # Better Auth route handler
 │   ├── dashboard/
-│   │   ├── layout.tsx                        # Server session → role-aware DashboardShell (guest → /sign-in)
-│   │   ├── loading.tsx                       # Dashboard skeleton loading state
-│   │   ├── page.tsx                          # /dashboard index: redirects to the session role's dashboard
-│   │   ├── seeker/page.tsx                   # Seeker dashboard (role-guarded overview)
-│   │   ├── recruiter/page.tsx                # Recruiter dashboard (role-guarded overview)
-│   │   └── admin/page.tsx                    # Admin dashboard (role-guarded overview)
+│   │   ├── layout.tsx                         # Server session → role-aware DashboardShell (guest → /sign-in)
+│   │   ├── loading.tsx                        # Dashboard skeleton loading state
+│   │   ├── page.tsx                           # /dashboard index: redirects to the session role's dashboard
+│   │   ├── seeker/page.tsx                    # Seeker dashboard (role-guarded overview)
+│   │   ├── recruiter/page.tsx                 # Recruiter dashboard (role-guarded overview)
+│   │   ├── recruiter/jobs/page.tsx            # Recruiter job listings view
+│   │   ├── recruiter/jobs/new/page.tsx        # Post-a-job form route
+│   │   └── admin/page.tsx                     # Admin dashboard (role-guarded overview)
+│   ├── globals.css                            # Theme variables & design tokens (--navbar-height, dashboard offset)
+│   ├── layout.tsx                             # Root layout with ThemeProvider & SiteHeader (no global footer)
+│   └── page.tsx → (marketing)/page.tsx        # Moved into the (marketing) route group
+├── components/
+│   ├── auth/                                  # Credential form components only
+│   │   ├── auth-portal-layout.tsx             # Futuristic digital gateway split layout (cybernetic orbit & telemetry)
+│   │   ├── sign-in-form.tsx                   # Sign In credentials form, remember me & recovery modal
+│   │   ├── sign-up-form.tsx                   # Sign Up form with role selection & live password strength meter
+│   │   ├── social-auth-button.tsx             # Google SSO authentication button with Better Auth integration
+│   │   └── password-input.tsx                 # Accessible password input with animated show/hide toggle
+│   ├── dashboard/                             # Reusable dashboard building blocks (moved out of app/components)
+│   │   ├── dashboard-shell.tsx                # DashboardShell: SidebarProvider + AppSidebar + topbar + content
+│   │   ├── dashboard-topbar.tsx               # Sticky topbar: mobile sidebar trigger, role label, user chip
+│   │   ├── dashboard-overview.tsx             # DashboardOverview: greeting + stats + quick actions per role
+│   │   ├── dashboard-stat-card.tsx            # DashboardStatCard: single overview metric card
+│   │   ├── dashboard-action-card.tsx          # DashboardActionCard: quick-action link card
+│   │   ├── dashboard-config.ts                # Data-driven per-role dashboard content + ROLE_LABELS
+│   │   └── post-job-form.tsx                  # Recruiter post-a-job form (textarea-backed)
+│   ├── home/
+│   │   ├── globe-stats-section.tsx            # 3D Earth, Stars, Glow & 4 Stat Cards
+│   │   ├── hero-section.tsx                   # Hero search banner with dual inputs & popular tags
+│   │   ├── featured-jobs-section.tsx          # "The roles you'd never find by searching" (3x2 grid)
+│   │   ├── features-section.tsx               # "Everything you need to succeed" (4x2 grid)
+│   │   ├── pricing-section.tsx                # "Pay for the leverage, not the listings" (3 tiers + toggle)
+│   │   └── cta-banner-section.tsx             # "Your next role is already looking for you" with glowing dome
+│   ├── layout/                                # Global chrome & navbar components (moved from components/ root + components/auth)
+│   │   ├── site-header.tsx                    # Responsive header with desktop nav, auth state & mobile sheet
+│   │   ├── site-footer.tsx                    # Global multi-column footer with legal links
+│   │   ├── nav-auth.tsx                       # NavAuth: session-aware navbar switch (guest links ↔ avatar menu)
+│   │   ├── nav-links.tsx                      # NavLinks: session-driven navbar links (public ↔ per-role with Dashboard)
+│   │   ├── user-menu.tsx                      # UserMenu: profile avatar trigger + shadcn dropdown (name, email, logout)
+│   │   └── user-summary.tsx                   # UserSummary: mobile identity card with direct logout action
+│   ├── marketing/
+│   │   └── placeholder-page.tsx               # Shared placeholder page used by /jobs, /company, /pricing
+│   ├── sidebar/                               # Modular role-driven sidebar (moved out of app/components)
+│   │   ├── AppSidebar.tsx                     # Orchestrator: session role/user + active route + composition
+│   │   ├── navigation-config.ts               # Role-based menu configuration + resolveActiveUrl helper
+│   │   ├── types.ts                           # AppRole, SidebarUser, NavItem/Section, RoleBadgeVariant, normalizeAppRole
+│   │   ├── header.tsx                         # AppSidebarHeader: role switch (UserProfile ↔ Logo)
+│   │   ├── user-profile.tsx                   # AppSidebarUserProfile: avatar + name + caption + badge
+│   │   ├── logo.tsx                           # AppSidebarLogo: HireLoop brand mark + title
+│   │   ├── navigation-menu.tsx                # AppSidebarNavigationMenu: sections → sidebar groups
+│   │   ├── menu-item.tsx                      # AppSidebarMenuItem: single icon+title Next Link row
+│   │   ├── role-badge.tsx                     # AppSidebarRoleBadge: tier / premium / admin pill
+│   │   ├── footer.tsx                         # AppSidebarFooter: role switch (CTA + logout / identity)
+│   │   └── logout.tsx                         # AppSidebarLogout: working Better Auth logout with spinner
+│   └── ui/
+│       ├── avatar.tsx                         # Base UI avatar primitives (image + initials fallback)
+│       ├── button.tsx                         # Base UI button component
+│       ├── dropdown-menu.tsx                  # Base UI menu primitives styled as shadcn dropdown
+│       ├── input.tsx                          # Base UI input primitive
+│       ├── separator.tsx                      # Base UI separator primitive
+│       ├── sheet.tsx                          # Base UI accessible drawer sheet
+│       ├── sidebar.tsx                        # shadcn sidebar primitives built on Base UI
+│       ├── skeleton.tsx                       # Skeleton loading primitive
+│       ├── textarea.tsx                       # Base UI textarea primitive
+│       └── tooltip.tsx                        # Base UI tooltip primitive
 ├── hooks/
-│   └── use-logout.ts                         # Shared Better Auth sign-out flow with loading state
+│   ├── use-logout.ts                          # Shared Better Auth sign-out flow with loading state
+│   └── use-mobile.ts                          # Responsive breakpoint detection hook
 └── lib/
-    ├── auth.ts                               # Better Auth server configuration
-    ├── auth-client.ts                        # Single Better Auth React client (session, sign in/up/out)
-    ├── role-routes.ts                        # Centralized role-based route config: ROLE_DASHBOARD, nav links, resolvers
-    ├── session.ts                            # Server-side cached session lookup + role guard (requireSessionRole)
-    └── utils.ts                              # `cn` helper + avatar initials utility
+    ├── auth.ts                                # Better Auth server configuration
+    ├── auth-client.ts                         # Single Better Auth React client (session, sign in/up/out)
+    ├── role-routes.ts                         # Centralized role-based route config: ROLE_DASHBOARD, nav links, resolvers
+    ├── session.ts                             # Server-side cached session lookup + role guard (requireSessionRole)
+    └── utils.ts                               # `cn` helper + avatar initials utility
 ```
+
+### Structure Conventions
+- **`app/` holds routes only** — every route segment maps to a URL; no shared components are colocated under `app/` (the former `app/components/` folder was dissolved into `components/`).
+- **`components/` is grouped by domain:** `auth/` (credential forms), `layout/` (global chrome & navbar), `home/` (landing sections), `dashboard/` + `sidebar/` (post-auth UI), `marketing/` (public placeholder views) and `ui/` (design-system primitives).
+- **`lib/` holds framework-free logic** (auth clients, route/session config, utilities) and **`hooks/` holds shared React hooks** (`use-logout`, `use-mobile`).
 
 ## Digital Identity Portal Features
 
