@@ -3,6 +3,7 @@ import {
   Briefcase,
   Building2,
   CreditCard,
+  CirclePlus,
   FileText,
   LayoutDashboard,
   Settings,
@@ -35,6 +36,7 @@ export const NAV_SECTIONS: Record<AppRole, NavSection[]> = {
       items: [
         { title: "Dashboard", url: "/dashboard/recruiter", icon: LayoutDashboard },
         { title: "Manage Jobs", url: "/dashboard/recruiter/jobs", icon: Briefcase },
+        { title: "Add Job", url: "/dashboard/recruiter/jobs/new", icon: CirclePlus },
         { title: "Applications", url: "/dashboard/recruiter/applications", icon: FileText },
         { title: "Settings", url: "/dashboard/recruiter/settings", icon: Settings },
       ],

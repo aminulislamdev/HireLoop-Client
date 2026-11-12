@@ -223,20 +223,80 @@ hireloop-client/
 40. **`f8e32b0`** `feat(nav): render role-aware navbar links in the site header`
 41. **`6991771`** `feat(nav): add role-aware dashboard shortcut to the user menu`
 42. **`1fdba82`** `feat(auth): protect dashboard routes with edge proxy session guard`
-43. **`[this commit]`** `docs: update implementation log with role-based navbar and route protection`
+43. **`6d6a676`** `docs: update implementation log with role-based navbar and route protection`
+44. **`fbc0f0c`** `fix(nav): default unknown session roles to seeker navbar links (consistency with Better Auth role default)`
+45. **`[this commit]`** `docs: finalize implementation log for role-based navbar and dashboard protection`
 
-## Verification
-- **TypeScript (`tsc --noEmit`):** Passed with 0 errors.
-- **ESLint (`eslint`):** Passed with 0 errors and 0 warnings.
-- **Responsiveness:** Full support across mobile, tablet, and desktop split views.
-- **Better Auth API flow (curl):** Sign up → session present → sign out → session `null` → sign in → session present → sign out → session `null`.
-- **Headless Chrome E2E (16/16 checks):**
-  - Sign up redirects to Home, avatar appears, guest actions hidden, session exists.
-  - Profile dropdown shows the user's name, email and Log out.
-  - Logout clears the Better Auth session and restores Sign In / Get Started.
-  - Sign in redirects to Home and shows the avatar.
-  - Mobile header shows the avatar; the sheet shows the identity card and logout, hiding guest links.
-  - Mobile logout clears the session.
-- **Routes rendered:** `/`, `/sign-in`, `/sign-up`, `/jobs`, `/company`, `/pricing` all return HTTP 200 with no runtime error markers.
-- **Dashboard flow (curl + production build):** `next build` passes with `/dashboard`, `/dashboard/seeker`, `/dashboard/recruiter`, `/dashboard/admin` as dynamic session-rendered routes; unauthenticated requests to any dashboard URL return 307 → `/sign-in`; after sign-up, `/dashboard/seeker` renders the role shell (sidebar, "Job Seeker Dashboard" topbar, "Welcome back, …" greeting, stat cards and quick actions) with the loading skeleton boundary in place.
+---
+
+## Layout Restructure — Route-Group–Based Footer & Dashboard Offset
+
+### Goal
+Fix HireLoop layout so:
+- **Public pages** (`/`, `/jobs`, `/company`, `/pricing`): Navbar + content + footer.
+- **Auth pages** (`/sign-in`, `/sign-up`): Navbar + full-screen auth UI, **no footer**.
+- **Dashboard pages** (`/dashboard/*`): Sticky navbar + role-based sidebar below navbar + content, **no footer**.
+
+### Strategy: Route Group Layouts
+Next.js App Router route groups (parenthesised folders) allow separate layouts without changing URL paths.
+
+```
+app/
+├── layout.tsx                  # ROOT: ThemeProvider + SiteHeader (global — no footer)
+├── (marketing)/
+│   ├── layout.tsx              # Adds SiteFooter to public pages only
+│   ├── page.tsx                # / (home)
+│   ├── jobs/page.tsx           # /jobs
+│   ├── company/page.tsx        # /company
+│   └── pricing/page.tsx        # /pricing
+├── (auth)/
+│   ├── layout.tsx              # Pass-through (no footer — auth UI fills viewport)
+│   ├── sign-in/page.tsx
+│   └── sign-up/page.tsx
+└── dashboard/
+    └── layout.tsx              # DashboardShell: role-aware sidebar + no footer
+```
+
+### Key Changes
+
+| File | Change |
+|------|--------|
+| `app/layout.tsx` | Removed `<SiteFooter />` — now only `<SiteHeader />` is global |
+| `app/(marketing)/layout.tsx` | **New** — renders `<SiteFooter />` for public pages only |
+| `app/(marketing)/page.tsx` | Moved from `app/page.tsx` |
+| `app/(marketing)/jobs/page.tsx` | Moved from `app/jobs/page.tsx` |
+| `app/(marketing)/company/page.tsx` | Moved from `app/company/page.tsx` |
+| `app/(marketing)/pricing/page.tsx` | Moved from `app/pricing/page.tsx` |
+| `app/(auth)/layout.tsx` | **New** — minimal pass-through, suppresses footer |
+| `components/site-header.tsx` | Changed `relative z-40` → `sticky top-0 z-50` |
+| `app/globals.css` | Added `--navbar-height: 4rem` (4.5rem at `lg:`) + dashboard sidebar CSS offset rule |
+| `app/components/dashboard/dashboard-shell.tsx` | Added `--dashboard-top` CSS var on `SidebarProvider`; constrained shell height to `100svh - navbar`; sidebar container offset via CSS selector |
+
+### CSS Sidebar Offset Mechanism
+The shadcn `Sidebar` component uses `fixed inset-y-0` for its panel container. To push it below the sticky navbar without editing the generated component:
+
+```css
+/* globals.css — targets the sidebar-container inside a DashboardShell */
+[data-slot="sidebar-wrapper"]:has(> [data-slot="sidebar"]) [data-slot="sidebar-container"] {
+  top: var(--dashboard-top, 0);
+  height: calc(100svh - var(--dashboard-top, 0));
+}
+```
+
+`DashboardShell` sets `--dashboard-top: var(--navbar-height)` on `SidebarProvider` via `style`, so this rule only applies inside dashboard layouts.
+
+### Commits for This Task
+46. **`b95f4a8`** `refactor(layout): remove SiteFooter from root layout to enable per-route-group control`
+47. **`e1108f4`** `feat(layout): add (marketing) route group with SiteFooter layout for public pages`
+48. **`7bf9234`** `feat(auth): add pass-through layout for (auth) route group, suppressing site footer`
+49. **`852c161`** `fix(header): make SiteHeader sticky and add --navbar-height CSS variable for dashboard offset`
+50. **`29eb7c0`** `fix(dashboard): offset sidebar below sticky navbar using --dashboard-top CSS variable`
+
+### Verification
+- **TypeScript (`tsc --noEmit`):** ✅ 0 errors (after clearing stale `.next` cache).
+- **ESLint:** ✅ 0 errors, 0 warnings.
+- **Routes:** `/`, `/jobs`, `/company`, `/pricing` → navbar + content + footer.
+- **Auth:** `/sign-in`, `/sign-up` → navbar + full-screen auth portal, no footer.
+- **Dashboard:** `/dashboard/*` → sticky navbar + role sidebar offset below navbar + content, no footer.
+- **Git:** 5 clean conventional commits, no history rewritten, not pushed.
 
