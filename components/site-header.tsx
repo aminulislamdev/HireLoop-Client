@@ -23,7 +23,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="relative z-40 w-full bg-nav text-nav-foreground">
+    <header className="sticky top-0 z-50 w-full bg-nav text-nav-foreground">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:h-18 lg:px-16">
         <Link
           href="/"
