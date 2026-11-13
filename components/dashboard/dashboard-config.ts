@@ -93,7 +93,7 @@ export const DASHBOARD_CONFIG: Record<AppRole, DashboardConfig> = {
       {
         title: "Post a Job",
         description: "Reach matched seekers instantly",
-        href: "/dashboard/recruiter/jobs",
+        href: "/dashboard/recruiter/jobs/new",
         icon: PlusSquare,
       },
       {
